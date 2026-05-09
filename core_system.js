@@ -8,9 +8,9 @@ const CoreSystem = {
     // --------------------------------------
     ITEMS: {
         vestidos: [
-            { id: "d_pink", name: "Vestido Rosa", price: 50, icon: "👗", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" },
-            { id: "d_blue", name: "Vestido Hielo", price: 80, icon: "❄️", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" },
-            { id: "d_purp", name: "Vestido Mágico", price: 100, icon: "✨", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" }
+            { id: "d_pink", name: "Traje Guerrera Mágica", price: 50, icon: "🛡️", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" },
+            { id: "d_blue", name: "Traje Exploradora Hielo", price: 80, icon: "🧭", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" },
+            { id: "d_purp", name: "Vestido Realeza Real", price: 100, icon: "👑", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" }
         ],
         ropa_nino: [
             { id: "b_hero", name: "Traje Héroe", price: 50, icon: "🦸‍♂️", zIndex: 10, css: "bottom: 10%; left: 50%; transform: translateX(-50%); font-size: 150px; text-shadow: 0 5px 10px rgba(0,0,0,0.5);" },
@@ -269,9 +269,9 @@ const CoreSystem = {
                     opacity:0.85;`;
             } else {
                 // Girl dresses are full centered garments
-                dressCSS = `position:absolute; top:22%; left:50%;
+                dressCSS = `position:absolute; top:34%; left:50%;
                     transform:translateX(-50%);
-                    width:95%; height:70%;
+                    width:95%; height:60%;
                     object-fit:contain; object-position:top center;
                     z-index:5; pointer-events:none;
                     mix-blend-mode:multiply;`;

@@ -848,13 +848,16 @@ function finishAvatarSetup(skipAudio = false) {
     // 2. Actualizar Interfaz (Niño vs Niña)
     const wardrobeBtn = document.getElementById('wardrobe-target');
     if (currentGender === 'boy') {
-        avatarImg.src = 'assets/boy_base.png';
         wardrobeBtn.href = 'armario_nino.html';
         wardrobeBtn.innerHTML = '<span class="icon">👕</span> Entrar al Armario';
     } else {
-        avatarImg.src = 'assets/maria_antonia_stylized.png';
         wardrobeBtn.href = 'boutique.html';
         wardrobeBtn.innerHTML = '<span class="icon">👗</span> Entrar al Armario';
+    }
+    
+    // 3. Renderizar Avatar Completo (con ropa auto-equipada)
+    if (typeof CoreSystem !== 'undefined') {
+        CoreSystem.renderAvatar('hub-avatar-container');
     }
     
     // Ocultar Overlay
