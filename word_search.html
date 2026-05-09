@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOPA MÁGICA - Maria Antonia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Orbitron:wght@700&display=swap" rel="stylesheet">
+    <script src="core_system.js"></script>
+    <style>
+        :root {
+            --pink: #ff69b4;
+            --purple: #8a2be2;
+            --cyan: #00ffff;
+            --gold: #ffd700;
+            --bg: #0f0c29;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--bg), #302b63, #24243e);
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0;
+            color: var(--pink);
+            text-shadow: 0 0 20px rgba(255, 105, 180, 0.5);
+        }
+
+        #level-title {
+            color: var(--cyan);
+            margin-top: -10px;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .game-container {
+            display: flex;
+            gap: 40px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 40px;
+            backdrop-filter: blur(10px);
+            border: 4px solid var(--cyan);
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.3);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .word-list {
+            min-width: 200px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 20px;
+            border: 2px solid var(--pink);
+        }
+
+        .word-list h3 {
+            color: var(--gold);
+            text-align: center;
+            margin-top: 0;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        .word-item {
+            font-size: 1.4rem;
+            margin: 10px 0;
+            padding: 5px 15px;
+            border-radius: 10px;
+            transition: 0.3s;
+            text-transform: uppercase;
+        }
+
+        .word-item.found {
+            text-decoration: line-through;
+            color: #555;
+            background: rgba(0, 255, 0, 0.2);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(10, 45px);
+            gap: 8px;
+            user-select: none;
+        }
+
+        .cell {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--cyan);
+        }
+
+        .cell:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .cell.found-permanent {
+            background: var(--purple);
+            color: white;
+            box-shadow: 0 0 10px var(--purple);
+            border-color: var(--gold);
+        }
+
+        /* selected debe ir después para sobreescribir el color si es necesario */
+        .cell.selected {
+            background: var(--pink) !important;
+            color: white !important;
+            box-shadow: 0 0 15px var(--pink) !important;
+            border-color: white !important;
+        }
+
+        .btn-back {
+            margin-top: 30px;
+            padding: 12px 30px;
+            background: var(--gold);
+            color: black;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+
+        .btn-back:hover { transform: scale(1.1); }
+
+        #victory-msg {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; color: var(--purple);
+            padding: 50px; border-radius: 50px;
+            text-align: center; border: 10px solid var(--gold);
+            z-index: 100; box-shadow: 0 0 100px rgba(255, 215, 0, 0.8);
+        }
+
+        #victory-msg h2 { font-size: 3rem; margin: 0; }
+        #victory-msg p { font-size: 1.5rem; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Sopa Mágica de Maria Antonia</h1>
+        <div id="level-title">Nivel 1</div>
+    </div>
+
+    <div class="game-container">
+        <div class="word-list">
+            <h3>PALABRAS</h3>
+            <div id="words-container"></div>
+        </div>
+
+        <div class="grid" id="grid"></div>
+    </div>
+
+    <a href="index.html" class="btn-back">⬅ VOLVER AL CASTILLO</a>
+
+    <div id="victory-msg">
+        <div style="width: 150px; height: 150px; margin: 0 auto 20px; border-radius: 50%; border: 5px solid var(--gold); overflow: hidden; box-shadow: 0 0 20px var(--gold);">
+            <img src="assets/maria_antonia_stylized.png" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+        <h2>¡LO LOGRASTE!</h2>
+        <p>Eres la mejor exploradora, Maria Antonia</p>
+        <div style="font-size: 50px;">🌟👑🍬</div>
+        <button onclick="location.reload()" class="btn-back">JUGAR OTRA VEZ</button>
+    </div>
+
+    <script>
+        const levelsData = [
+            {
+                title: "Nivel 1: Familia y Favoritos",
+                words: ["MARIA", "ANTONIA", "STITCH", "PRINCESA", "MARIO", "GUERRERA", "KPOP", "MAGIA"]
+            },
+            {
+                title: "Nivel 2: Animales Mágicos",
+                words: ["PERRO", "GATO", "UNICORNIO", "DRAGON", "LEON", "TIGRE", "CONEJO", "PEZ"]
+            },
+            {
+                title: "Nivel 3: La Naturaleza",
+                words: ["ROSA", "ARBOL", "FLOR", "LUNA", "ESTRELLA", "SOL", "AGUA", "CIELO"]
+            },
+            {
+                title: "Nivel 4: Dulces y Postres",
+                words: ["HELADO", "GALLETA", "PASTEL", "DULCE", "FRESA", "CEREZA", "CHOCOLATE"]
+            }
+        ];
+
+        let currentLevelIndex = 0;
+        let words = [];
+        const gridSize = 10;
+        const grid = document.getElementById('grid');
+        const wordsContainer = document.getElementById('words-container');
+        let selectedCells = [];
+        let foundWords = [];
+        let matrix = [];
+
+        // --- VOZ MAGICA ---
+        function speak(text, pitch = 1.2) {
+            if (!('speechSynthesis' in window)) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'es-ES';
+            msg.rate = 0.9;
+            msg.pitch = pitch;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- CONFETTI ---
+        function burst() {
+            for (let i = 0; i < 40; i++) {
+                const dot = document.createElement('div');
+                dot.style.cssText = `position:fixed;left:${30+Math.random()*40}%;top:${30+Math.random()*40}%;width:12px;height:12px;border-radius:50%;background:hsl(${Math.random()*360},100%,50%);pointer-events:none;z-index:9999;`;
+                document.body.appendChild(dot);
+                const a = Math.random() * Math.PI * 2;
+                const d = Math.random() * 200 + 80;
+                dot.animate([{transform:'translate(0,0)',opacity:1},{transform:`translate(${Math.cos(a)*d}px,${Math.sin(a)*d}px)`,opacity:0}],{duration:900,easing:'ease-out'}).onfinish = () => dot.remove();
+            }
+        }
+
+        function initLevel() {
+            words = levelsData[currentLevelIndex].words;
+            document.getElementById('level-title').textContent = levelsData[currentLevelIndex].title;
+            foundWords = [];
+            selectedCells = [];
+            matrix = Array(gridSize).fill().map(() => Array(gridSize).fill(''));
+            wordsContainer.innerHTML = '';
+            
+            // Generar lista de palabras visual
+            words.forEach(w => {
+                const div = document.createElement('div');
+                div.className = 'word-item';
+                div.id = `word-${w}`;
+                div.textContent = w;
+                wordsContainer.appendChild(div);
+            });
+
+            placeWords();
+            renderGrid();
+            
+            if(currentLevelIndex === 0) {
+                setTimeout(() => speak('¡Hola Maria Antonia! Encuentra todas las palabras mágicas. ¡Tú puedes!', 1.2), 600);
+            } else {
+                setTimeout(() => speak(`¡Siguiente nivel! ${levelsData[currentLevelIndex].title}`, 1.3), 500);
+            }
+        }
+
+        // Función para colocar palabras
+        function placeWords() {
+            words.forEach(word => {
+                let placed = false;
+                let attempts = 0;
+                while (!placed && attempts < 200) {
+                    attempts++;
+                    const direction = Math.random() > 0.5 ? 'H' : 'V';
+                    const row = Math.floor(Math.random() * gridSize);
+                    const col = Math.floor(Math.random() * gridSize);
+
+                    if (direction === 'H' && col + word.length <= gridSize) {
+                        let fits = true;
+                        for (let i = 0; i < word.length; i++) {
+                            if (matrix[row][col + i] !== '' && matrix[row][col + i] !== word[i]) fits = false;
+                        }
+                        if (fits) {
+                            for (let i = 0; i < word.length; i++) matrix[row][col + i] = word[i];
+                            placed = true;
+                        }
+                    } else if (direction === 'V' && row + word.length <= gridSize) {
+                        let fits = true;
+                        for (let i = 0; i < word.length; i++) {
+                            if (matrix[row + i][col] !== '' && matrix[row + i][col] !== word[i]) fits = false;
+                        }
+                        if (fits) {
+                            for (let i = 0; i < word.length; i++) matrix[row + i][col] = word[i];
+                            placed = true;
+                        }
+                    }
+                }
+            });
+
+            // Rellenar con letras aleatorias
+            const alphabet = "ABCDEFGHIJKLMNÑOPQRSTUVWXYZ";
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    if (matrix[r][c] === '') {
+                        matrix[r][c] = alphabet[Math.floor(Math.random() * alphabet.length)];
+                    }
+                }
+            }
+        }
+
+        function renderGrid() {
+            grid.innerHTML = '';
+            for (let r = 0; r < gridSize; r++) {
+                for (let c = 0; c < gridSize; c++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.textContent = matrix[r][c];
+                    cell.dataset.r = r;
+                    cell.dataset.c = c;
+                    cell.onclick = () => handleCellClick(cell, r, c);
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function handleCellClick(cell, r, c) {
+            // Ya no ignoramos si está found-permanent, así permitimos cruces de palabras
+            const isSelected = selectedCells.some(item => item.r === r && item.c === c);
+
+            if (isSelected) {
+                cell.classList.remove('selected');
+                selectedCells = selectedCells.filter(item => item.r !== r || item.c !== c);
+            } else {
+                cell.classList.add('selected');
+                selectedCells.push({ r, c, char: matrix[r][c] });
+            }
+
+            checkWord();
+        }
+
+        function checkWord() {
+            const currentStr = selectedCells.map(s => s.char).join('');
+            const currentStrRev = [...currentStr].reverse().join('');
+
+            words.forEach(w => {
+                if ((currentStr === w || currentStrRev === w) && !foundWords.includes(w)) {
+                    foundWords.push(w);
+                    document.getElementById(`word-${w}`).classList.add('found');
+
+                    // Marcar celdas como encontradas permanentemente
+                    selectedCells.forEach(s => {
+                        const el = document.querySelector(`.cell[data-r="${s.r}"][data-c="${s.c}"]`);
+                        el.classList.remove('selected');
+                        el.classList.add('found-permanent');
+                    });
+                    selectedCells = [];
+
+                    // Celebrar palabra encontrada
+                    burst();
+                    speak(`¡Encontraste ${w}!`, 1.4);
+
+                    if (foundWords.length === words.length) {
+                        setTimeout(() => {
+                            CoreSystem.addStars(10);
+                            if (currentLevelIndex < levelsData.length - 1) {
+                                currentLevelIndex++;
+                                initLevel();
+                            } else {
+                                speak('¡FELICIDADES, MARIA ANTONIA! ¡Completaste todos los niveles de la sopa de letras!', 1.5);
+                                document.getElementById('victory-msg').style.display = 'block';
+                                burst(); burst(); burst();
+                            }
+                        }, 1500);
+                    }
+                }
+            });
+        }
+
+        // Iniciar el juego
+        window.addEventListener('load', initLevel);
+    </script>
+</body>
+</html>

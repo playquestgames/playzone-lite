@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayZone Mágico</title>
+    <meta name="description" content="PlayZone Mágico - juegos educativos de matemáticas, inglés, español y artística">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <script src="core_system.js"></script>
+    <style>
+        :root {
+            --pink: #ff69b4;
+            --purple: #9333ea;
+            --purple-dark: #4c1d95;
+            --gold: #fbbf24;
+            --orange: #f97316;
+            --blue: #3b82f6;
+            --bg-color: #0f172a;
+            --red: #ef4444;
+            --white: #ffffff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            font-family: 'Fredoka One', cursive;
+            background: radial-gradient(ellipse at top, #1a0533 0%, #000010 60%);
+            color: var(--white);
+            overflow-x: hidden;
+            overflow-y: auto;
+            padding-bottom: 60px;
+        }
+
+        /* ── Estrellas de fondo ── */
+        #stars-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* ── Header ── */
+        .header {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 40px 20px 20px;
+        }
+
+        .portrait-ring {
+            width: 130px; height: 130px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--pink), var(--cyan));
+            padding: 5px;
+            margin: 0 auto 16px;
+            animation: spin-ring 6s linear infinite;
+            box-shadow: 0 0 40px rgba(255, 183, 36, 0.6), 0 0 80px rgba(255, 105, 180, 0.4);
+        }
+
+        @keyframes spin-ring {
+            0%   { box-shadow: 0 0 30px rgba(255,183,36,0.6), 0 0 60px rgba(255,105,180,0.3); }
+            50%  { box-shadow: 0 0 60px rgba(6,182,212,0.8), 0 0 100px rgba(255,105,180,0.5); }
+            100% { box-shadow: 0 0 30px rgba(255,183,36,0.6), 0 0 60px rgba(255,105,180,0.3); }
+        }
+
+        .portrait-ring img.base {
+            width: 100%; height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            display: block;
+            position: relative;
+            z-index: 2;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 6vw, 3.8rem);
+            background: linear-gradient(to right, var(--gold), var(--pink), var(--cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .header .subtitle {
+            font-family: 'Nunito', sans-serif;
+            font-size: clamp(0.85rem, 2.5vw, 1.1rem);
+            color: rgba(255,255,255,0.65);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        /* ── Materias tabs ── */
+        .subjects-wrapper {
+            position: relative;
+            z-index: 10;
+            max-width: 960px;
+            margin: 30px auto 0;
+            padding: 0 16px;
+        }
+
+        .tabs-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border-radius: 50px;
+            border: 3px solid transparent;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.05rem;
+            cursor: pointer;
+            background: rgba(255,255,255,0.07);
+            color: rgba(255,255,255,0.6);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            backdrop-filter: blur(6px);
+        }
+
+        .tab-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            color: white;
+            background: rgba(255,255,255,0.14);
+        }
+
+        .tab-btn.active {
+            color: white;
+            transform: translateY(-4px) scale(1.07);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        }
+
+        .tab-btn .tab-icon { font-size: 1.4rem; }
+
+        /* colores por materia */
+        .tab-btn[data-subject="matematicas"].active { background: linear-gradient(135deg, #1d4ed8, #3b82f6); border-color: #93c5fd; box-shadow: 0 8px 24px rgba(59,130,246,0.5); }
+        .tab-btn[data-subject="ingles"].active      { background: linear-gradient(135deg, #065f46, #10b981); border-color: #6ee7b7; box-shadow: 0 8px 24px rgba(16,185,129,0.5); }
+        .tab-btn[data-subject="espanol"].active     { background: linear-gradient(135deg, #92400e, #f97316); border-color: #fed7aa; box-shadow: 0 8px 24px rgba(249,115,22,0.5); }
+        .tab-btn[data-subject="artistica"].active   { background: linear-gradient(135deg, #86198f, #ec4899); border-color: #f9a8d4; box-shadow: 0 8px 24px rgba(236,72,153,0.5); }
+        .tab-btn[data-subject="ciencias"].active    { background: linear-gradient(135deg, #134e4a, #06b6d4); border-color: #67e8f9; box-shadow: 0 8px 24px rgba(6,182,212,0.5); }
+
+        /* ── Paneles de juegos ── */
+        .subject-panel {
+            display: none;
+            animation: fadeUp 0.45s ease forwards;
+        }
+        .subject-panel.active { display: block; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .panel-header {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .panel-header h2 {
+            font-size: clamp(1.5rem, 4vw, 2.2rem);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .panel-header p {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.55);
+            margin-top: 6px;
+        }
+
+        /* ── Grid de juegos ── */
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .game-card {
+            position: relative;
+            border-radius: 28px;
+            padding: 28px 20px 22px;
+            text-align: center;
+            text-decoration: none;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+            overflow: hidden;
+            border: 3px solid rgba(255,255,255,0.15);
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: rgba(255,255,255,0.07);
+            border-radius: inherit;
+        }
+
+        .game-card:hover {
+            transform: translateY(-8px) scale(1.04);
+        }
+
+        .game-card .card-icon {
+            font-size: 3.2rem;
+            display: block;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+            transition: transform 0.3s;
+        }
+
+        .game-card:hover .card-icon { transform: scale(1.15) rotate(-5deg); }
+
+        .game-card .card-title {
+            font-size: 1.15rem;
+            font-weight: bold;
+            display: block;
+            line-height: 1.2;
+        }
+
+        .game-card .card-desc {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.75);
+            margin-top: 6px;
+            display: block;
+        }
+
+        .badge-new {
+            position: absolute;
+            top: 12px; right: 12px;
+            background: var(--gold);
+            color: #000;
+            font-size: 0.65rem;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            padding: 3px 8px;
+            border-radius: 20px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* colores de cards por materia */
+        .card-math   { background: linear-gradient(135deg, #1e3a8a, #3b82f6); box-shadow: 0 12px 32px rgba(59,130,246,0.4); }
+        .card-math:hover   { box-shadow: 0 20px 48px rgba(59,130,246,0.6); }
+        .card-english{ background: linear-gradient(135deg, #064e3b, #10b981); box-shadow: 0 12px 32px rgba(16,185,129,0.4); }
+        .card-english:hover{ box-shadow: 0 20px 48px rgba(16,185,129,0.6); }
+        .card-spanish{ background: linear-gradient(135deg, #7c2d12, #f97316); box-shadow: 0 12px 32px rgba(249,115,22,0.4); }
+        .card-spanish:hover{ box-shadow: 0 20px 48px rgba(249,115,22,0.6); }
+        .card-art    { background: linear-gradient(135deg, #701a75, #ec4899); box-shadow: 0 12px 32px rgba(236,72,153,0.4); }
+        .card-art:hover    { box-shadow: 0 20px 48px rgba(236,72,153,0.6); }
+        .card-science{ background: linear-gradient(135deg, #134e4a, #06b6d4); box-shadow: 0 12px 32px rgba(6,182,212,0.4); }
+        .card-science:hover{ box-shadow: 0 20px 48px rgba(6,182,212,0.6); }
+
+        /* Próximamente */
+        .card-soon {
+            background: linear-gradient(135deg, #1f2937, #374151) !important;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important;
+            cursor: not-allowed;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .card-soon:hover { transform: none !important; box-shadow: 0 8px 20px rgba(0,0,0,0.3) !important; }
+        .card-soon .card-icon { filter: grayscale(0.5); }
+
+        /* ── Floating sparkles ── */
+        .sparkle {
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            animation: sparkle-anim 3s ease-in-out forwards;
+            z-index: 1;
+        }
+        @keyframes sparkle-anim {
+            0%   { opacity: 0; transform: translateY(0) scale(0); }
+            30%  { opacity: 0.9; transform: translateY(-20px) scale(1); }
+            100% { opacity: 0; transform: translateY(-80px) scale(0.3); }
+        }
+
+        /* ── Footer ── */
+        .footer {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            margin-top: 50px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.35);
+        }
+
+        /* ── Botón Armario ── */
+        .wardrobe-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--pink), var(--purple));
+            color: white; padding: 10px 24px; border-radius: 30px;
+            font-size: 1.1rem; text-decoration: none; margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(255,105,180,0.5);
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .wardrobe-btn:hover { transform: scale(1.05); box-shadow: 0 8px 20px rgba(255,105,180,0.7); }
+        .wardrobe-btn.tutorial-active-element { background: white; color: var(--pink); border-color: var(--pink); }
+
+        /* ── Responsive ── */
+        @media (max-width: 600px) {
+            .tab-btn { padding: 10px 14px; font-size: 0.9rem; }
+            .games-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .speech-bubble { font-size: 1rem; padding: 15px; width: 95%; max-width: none; }
+            .welcome-modal { padding: 25px; border-width: 3px; }
+            .welcome-modal h2 { font-size: 1.6rem; }
+            .about-modal { padding: 20px; font-size: 0.95rem; }
+            .card-title { font-size: 1rem; }
+            .card-icon { font-size: 2.5rem; }
+            .header h1 { font-size: 2rem; }
+        }
+        /* ── Welcome Modal ── */
+        .welcome-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            z-index: 10000; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s ease;
+        }
+        .welcome-modal {
+            background: var(--purple-dark); padding: 40px; border-radius: 40px; border: 4px solid var(--gold);
+            text-align: center; max-width: 400px; width: 90%; box-shadow: 0 0 50px rgba(251, 191, 36, 0.4);
+            animation: modalPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes modalPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .welcome-modal h2 { font-size: 2rem; margin-bottom: 20px; color: var(--gold); }
+        .welcome-modal input {
+            width: 100%; padding: 15px; border-radius: 20px; border: none; font-family: 'Fredoka One', cursive;
+            font-size: 1.2rem; text-align: center; margin-bottom: 20px; background: rgba(255,255,255,0.1);
+            color: white; outline: none; border: 2px solid transparent; transition: border-color 0.3s;
+        }
+        .welcome-modal input:focus { border-color: var(--pink); }
+        .welcome-modal button {
+            background: linear-gradient(135deg, var(--pink), var(--purple)); color: white; border: none;
+            padding: 15px 40px; border-radius: 30px; font-family: 'Fredoka One', cursive; font-size: 1.2rem;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .welcome-modal button:hover { transform: scale(1.05); }
+        .gender-btn { background: rgba(255,255,255,0.1); font-size: 3rem; padding: 20px; border-radius: 20px; border: 4px solid transparent; cursor: pointer; transition: 0.3s; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; }
+        .gender-btn:hover { background: rgba(255,255,255,0.2); transform: scale(1.05); }
+        .gender-btn.girl { background: rgba(255,105,180,0.2); }
+        .gender-btn.girl:hover { border-color: var(--pink); }
+        .gender-btn.boy { background: rgba(59,130,246,0.2); }
+        .gender-btn.boy:hover { border-color: var(--blue); }
+        .skin-btn { width: 70px; height: 70px; border-radius: 50%; border: 4px solid transparent; cursor: pointer; transition: 0.3s; }
+        .skin-btn:hover { transform: scale(1.1); border-color: white; }
+        .class-btn { background: rgba(255,255,255,0.1); color: white; border: 2px solid transparent; padding: 15px; border-radius: 15px; font-family: 'Nunito', sans-serif; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; width: 100%; text-align: left; }
+        .class-btn:hover { background: rgba(255,255,255,0.2); border-color: var(--gold); transform: translateX(5px); }
+        
+        /* ── About Modal ── */
+        .about-modal {
+            background: var(--purple-dark); padding: 30px; border-radius: 25px; border: 3px solid var(--gold);
+            text-align: center; max-width: 450px; width: 90%; box-shadow: 0 0 40px rgba(124, 58, 237, 0.6);
+            color: white; line-height: 1.6; font-family: 'Nunito', sans-serif; font-size: 1.05rem;
+        }
+        .about-modal h2 { font-family: 'Fredoka One', cursive; color: var(--pink); margin-bottom: 15px; font-size: 1.8rem; }
+        .about-modal .ai-credit { margin-top: 15px; font-style: italic; color: var(--gold); font-size: 0.95rem; }
+        .close-about-btn {
+            margin-top: 20px; background: rgba(255,255,255,0.1); color: white; border: 1px solid white;
+            padding: 8px 20px; border-radius: 20px; cursor: pointer; transition: 0.2s; font-family: 'Fredoka One', cursive;
+        }
+        .close-about-btn:hover { background: white; color: var(--purple-dark); }
+        
+        /* ── Tutorial ── */
+        .tutorial-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.75); z-index: 9998;
+            display: none; backdrop-filter: blur(3px); transition: opacity 0.3s;
+        }
+        .tutorial-active-element {
+            position: relative !important; z-index: 9999 !important;
+            box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.2), 0 0 30px var(--gold) !important;
+            animation: pulseHighlight 1.5s infinite;
+            background: rgba(0,0,0,0.5); /* Just in case it's transparent */
+            border-radius: 25px;
+        }
+        .portrait-ring.tutorial-active-element { border-radius: 50%; background: none; }
+        .tabs-row.tutorial-active-element { padding: 15px; background: rgba(0,0,0,0.3); }
+
+        @keyframes pulseHighlight {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4), 0 0 20px var(--gold); }
+            70% { box-shadow: 0 0 0 15px rgba(255, 255, 255, 0), 0 0 40px var(--pink); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0), 0 0 20px var(--gold); }
+        }
+
+        .speech-bubble {
+            position: fixed; z-index: 10000; background: white; color: var(--purple-dark);
+            padding: 20px 25px; border-radius: 25px; max-width: 320px; width: 90%; font-size: 1.15rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); border: 4px solid var(--pink);
+            display: none; flex-direction: column; gap: 15px;
+            left: 50%; transform: translateX(-50%);
+            animation: bounceIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center; line-height: 1.4;
+        }
+        @keyframes bounceIn { from { transform: translate(-50%, 20px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        .tutorial-btn {
+            align-self: center; background: linear-gradient(135deg, var(--gold), var(--orange)); color: black; border: none; padding: 10px 25px;
+            border-radius: 20px; font-family: 'Fredoka One', cursive; cursor: pointer; font-size: 1.1rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.2s;
+        }
+        .tutorial-btn:hover { transform: scale(1.08); }
+    </style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- BIENVENIDA MULTI-PASO -->
+<div id="welcome-overlay" class="welcome-overlay" style="display:none;">
+    <!-- Paso 1: Nombre -->
+    <div class="welcome-modal" id="step-name">
+        <span style="font-size: 4rem;">✨</span>
+        <h2>¡Bienvenido!</h2>
+        <p style="margin-bottom: 20px; color: rgba(255,255,255,0.7);">¿Cómo te llamas para empezar la aventura?</p>
+        <input type="text" id="child-name-input" placeholder="Tu nombre aquí..." maxlength="12">
+        <button id="btn-next-name">Siguiente</button>
+    </div>
+
+    <!-- Paso 2: Género -->
+    <div class="welcome-modal" id="step-gender" style="display:none;">
+        <h2>¿Eres niño o niña?</h2>
+        <p style="margin-bottom: 20px; color: rgba(255,255,255,0.7);">Elige tu personaje</p>
+        <div style="display: flex; gap: 20px; justify-content: center; margin-bottom: 20px;">
+            <button class="gender-btn girl" onclick="selectGender('girl')">👧</button>
+            <button class="gender-btn boy" onclick="selectGender('boy')">👦</button>
+        </div>
+    </div>
+
+    <!-- Paso 3: Piel -->
+    <div class="welcome-modal" id="step-skin" style="display:none;">
+        <h2>Tono de Piel</h2>
+        <p style="margin-bottom: 20px; color: rgba(255,255,255,0.7);">Elige el color que más te guste</p>
+        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;">
+            <button class="skin-btn" style="background:#ffdbac;" onclick="selectSkin('light')"></button>
+            <button class="skin-btn" style="background:#d2a170;" onclick="selectSkin('medium')"></button>
+            <button class="skin-btn" style="background:#8d5524;" onclick="selectSkin('dark')"></button>
+        </div>
+    </div>
+
+    <!-- Paso 4: Profesión -->
+    <div class="welcome-modal" id="step-class" style="display:none;">
+        <h2>¿Qué quieres ser?</h2>
+        <p style="margin-bottom: 20px; color: rgba(255,255,255,0.7);">Elige tu ropa de aventura</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <button class="class-btn" onclick="selectClass('hero')">🦸 Héroe con Capa</button>
+            <button class="class-btn" onclick="selectClass('explorer')">🧭 Explorador Valiente</button>
+            <button class="class-btn" onclick="selectClass('royal')">👑 Realeza Mágica</button>
+        </div>
+    </div>
+</div>
+
+<!-- ABOUT MODAL -->
+<div id="about-overlay" class="welcome-overlay" style="display:none; z-index: 20000;">
+    <div class="about-modal">
+        <h2>👋 ¡Hola!</h2>
+        <p>Gracias por visitar nuestra PlayZone. En realidad no soy un programador experto, soy un papá que está aprendiendo a programar con mucho cariño para crear herramientas educativas, sanas y divertidas para los niños.</p>
+        <p class="ai-credit">🤖 Este proyecto fue hecho realidad trabajando en equipo junto a mi asistente de Inteligencia Artificial (Antigravity). ¡Espero que lo disfruten mucho!</p>
+        <button class="close-about-btn" onclick="document.getElementById('about-overlay').style.display='none'">Cerrar</button>
+    </div>
+</div>
+
+<!-- TUTORIAL OVERLAY -->
+<div id="tutorial-overlay" class="tutorial-overlay"></div>
+<div id="speech-bubble" class="speech-bubble">
+    <p id="speech-text"></p>
+    <button id="tutorial-next-btn" class="tutorial-btn">¡Siguiente!</button>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+    <div id="avatar-target" class="portrait-ring">
+        <div id="hub-avatar-container" style="width: 100%; height: 100%; border-radius: 50%; position: relative; overflow: hidden; background: white;">
+            <img src="assets/maria_antonia_stylized.png" alt="Princesa" class="base" onerror="this.style.display='none'">
+        </div>
+    </div>
+    <h1 id="welcome-title">¡Hola! 👑</h1>
+    <button onclick="resetAvatar()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid white; border-radius: 20px; padding: 5px 15px; margin-top: -5px; margin-bottom: 10px; cursor: pointer;">🔄 Cambiar Personaje</button>
+    <div class="subtitle">Elige tu materia favorita para aprender hoy</div>
+    <a href="boutique.html" id="wardrobe-target" class="wardrobe-btn">
+        <span class="icon">👗</span> Entrar al Armario
+    </a>
+</div>
+
+<!-- MATERIAS -->
+<div class="subjects-wrapper">
+    <!-- Tabs -->
+    <div id="tabs-target" class="tabs-row" role="tablist">
+        <button class="tab-btn active" data-subject="matematicas" role="tab" aria-selected="true">
+            <span class="tab-icon">🔢</span> Matemáticas
+        </button>
+        <button class="tab-btn" data-subject="ingles" role="tab">
+            <span class="tab-icon">🌎</span> Inglés
+        </button>
+        <button class="tab-btn" data-subject="espanol" role="tab">
+            <span class="tab-icon">📖</span> Español
+        </button>
+        <button class="tab-btn" data-subject="artistica" role="tab">
+            <span class="tab-icon">🎨</span> Artística
+        </button>
+        <button class="tab-btn" data-subject="ciencias" role="tab">
+            <span class="tab-icon">🔬</span> Ciencias
+        </button>
+    </div>
+
+    <!-- ===== MATEMÁTICAS ===== -->
+    <div class="subject-panel active" id="panel-matematicas">
+        <div class="panel-header">
+            <h2>🔢 Matemáticas</h2>
+            <p>¡Suma, resta y conquista el castillo!</p>
+        </div>
+        <div class="games-grid">
+            <a href="math_quest.html" class="game-card card-math">
+                <span class="badge-new">¡NUEVO!</span>
+                <span class="card-icon">🏰</span>
+                <span class="card-title">Math Quest</span>
+                <span class="card-desc">Aventura de sumas y restas en el castillo mágico</span>
+            </a>
+            <a href="math_sum_4.html" class="game-card card-math">
+                <span class="badge-new">¡NUEVO!</span>
+                <span class="card-icon">☁️</span>
+                <span class="card-title">Sumas a las Nubes</span>
+                <span class="card-desc">Aprende a sumar de 4 dígitos llevando números</span>
+            </a>
+            <a href="#" class="game-card card-math locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">⭐</span>
+                <span class="card-title">Tablas Estelares</span>
+                <span class="card-desc">Próximamente en TikTok…</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== INGLÉS ===== -->
+    <div class="subject-panel" id="panel-ingles">
+        <div class="panel-header">
+            <h2>🌎 Inglés</h2>
+            <p>Learn words and have fun!</p>
+        </div>
+        <div class="games-grid">
+            <a href="english_animals.html" class="game-card card-english">
+                <span class="badge-new">¡NUEVO!</span>
+                <span class="card-icon">🐾</span>
+                <span class="card-title">Animal Words</span>
+                <span class="card-desc">Aprende animales en inglés</span>
+            </a>
+            <a href="magic_colors.html" class="game-card card-english">
+                <span class="badge-new">¡NUEVO!</span>
+                <span class="card-icon">🎈</span>
+                <span class="card-title">Magic Colors</span>
+                <span class="card-desc">Pinta de colores mágicos</span>
+            </a>
+            <a href="#" class="game-card card-english locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">👾</span>
+                <span class="card-title">My Body Monsters</span>
+                <span class="card-desc">Próximamente en TikTok…</span>
+            </a>
+            <a href="boutique.html" class="game-card card-english">
+                <span class="badge-new">¡TOP!</span>
+                <span class="card-icon">👗</span>
+                <span class="card-title">Magic Wardrobe</span>
+                <span class="card-desc">Aprende la ropa en inglés y viste a la princesa</span>
+            </a>
+            <a href="#" class="game-card card-english locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">🖼️</span>
+                <span class="card-title">Family Tree</span>
+                <span class="card-desc">Conoce a la familia en inglés</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- ===== ESPAÑOL ===== -->
+    <div class="subject-panel" id="panel-espanol">
+        <div class="panel-header">
+            <h2>📖 Español</h2>
+            <p>¡Palabras, letras y aventuras!</p>
+        </div>
+        <div class="games-grid">
+            <a href="word_search.html" class="game-card card-spanish">
+                <span class="card-icon">✨</span>
+                <span class="card-title">Sopa Mágica</span>
+                <span class="card-desc">Encuentra palabras escondidas en la sopa de letras</span>
+            </a>
+            <a href="#" class="game-card card-spanish locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">✍️</span>
+                <span class="card-title">Escritura Mágica</span>
+                <span class="card-desc">Practica ortografía con la princesa hechicera</span>
+            </a>
+            <div class="game-card card-spanish card-soon">
+                <span class="card-icon">📜</span>
+                <span class="card-title">Cuentos Mágicos</span>
+                <span class="card-desc">Próximamente…</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ARTÍSTICA ===== -->
+    <div class="subject-panel" id="panel-artistica">
+        <div class="panel-header">
+            <h2>🎨 Artística</h2>
+            <p>¡Pinta, crea y expresa tu arte mágico!</p>
+        </div>
+        <div class="games-grid">
+            <div class="game-card card-art card-soon">
+                <span class="card-icon">🖌️</span>
+                <span class="card-title">Taller Mágico</span>
+                <span class="card-desc">Próximamente…</span>
+            </div>
+            <a href="#" class="game-card card-art locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">🌈</span>
+                <span class="card-title">¡Sigue el Patrón!</span>
+                <span class="card-desc">Descubre y completa secuencias de colores y formas</span>
+            </a>
+            <div class="game-card card-art card-soon">
+                <span class="card-icon">🎨</span>
+                <span class="card-title">Lienzo Mágico</span>
+                <span class="card-desc">Próximamente…</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CIENCIAS ===== -->
+    <div class="subject-panel" id="panel-ciencias">
+        <div class="panel-header">
+            <h2>🔬 Ciencias</h2>
+            <p>¡Explora el mundo natural con la ciencia!</p>
+        </div>
+        <div class="games-grid">
+            <div class="game-card card-science card-soon">
+                <span class="card-icon">🦋</span>
+                <span class="card-title">Los Animales</span>
+                <span class="card-desc">Próximamente…</span>
+            </div>
+            <div class="game-card card-science card-soon">
+                <span class="card-icon">🌿</span>
+                <span class="card-title">Las Plantas</span>
+                <span class="card-desc">Próximamente…</span>
+            </div>
+            <a href="#" class="game-card card-science locked-game">
+                <span class="badge-new" style="background: #333; color: white;">🔒 PREMIUM</span>
+                <span class="card-icon">🌍</span>
+                <span class="card-title">El Sistema Solar</span>
+                <span class="card-desc">Aprende sobre los planetas del espacio</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+    Creado con ❤️ por un papá aprendiendo a programar.<br>
+    <a href="#" onclick="document.getElementById('about-overlay').style.display='flex'; return false;" style="color: var(--gold); text-decoration: none; margin-top: 8px; display: inline-block;">👉 Conoce nuestra historia</a>
+</div>
+
+<script>
+// ─── Canvas de estrellas ───────────────────────────────────
+const canvas = document.getElementById('stars-canvas');
+if (canvas) {
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+
+    function resizeCanvas() {
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+
+    function initStars() {
+        stars = [];
+        for (let i = 0; i < 180; i++) {
+            stars.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                r: Math.random() * 1.8 + 0.3,
+                a: Math.random(),
+                speed: Math.random() * 0.008 + 0.003,
+                phase: Math.random() * Math.PI * 2,
+            });
+        }
+    }
+
+    function drawStars() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now() * 0.001;
+        stars.forEach(s => {
+            const alpha = 0.3 + 0.7 * Math.abs(Math.sin(t * s.speed * 10 + s.phase));
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+            ctx.fill();
+        });
+        requestAnimationFrame(drawStars);
+    }
+
+    resizeCanvas(); initStars(); drawStars();
+    window.addEventListener('resize', () => { resizeCanvas(); initStars(); });
+}
+
+// ─── Tabs ────────────────────────────────────────────────
+const tabBtns   = document.querySelectorAll('.tab-btn');
+const panels    = document.querySelectorAll('.subject-panel');
+
+tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+        try {
+            const subject = btn.dataset.subject;
+
+            tabBtns.forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected', 'false'); });
+            panels.forEach(p => p.classList.remove('active'));
+
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+            
+            const targetPanel = document.getElementById(`panel-${subject}`);
+            if (targetPanel) {
+                targetPanel.classList.add('active');
+            }
+
+            // Chispas al cambiar de pestaña
+            for (let i = 0; i < 8; i++) spawnSparkle();
+        } catch (e) {
+            console.error("Error al cambiar de pestaña:", e);
+        }
+    });
+});
+
+// ─── Sparkles ─────────────────────────────────────────────
+const sparkleColors = ['#ff69b4','#ffd700','#00ffff','#ff00ff','#ffffff','#ff8800','#a78bfa'];
+function spawnSparkle() {
+    try {
+        const el = document.createElement('div');
+        el.className = 'sparkle';
+        const size = Math.random() * 9 + 4;
+        const color = sparkleColors[Math.floor(Math.random() * sparkleColors.length)];
+        Object.assign(el.style, {
+            width:  `${size}px`,
+            height: `${size}px`,
+            background: color,
+            boxShadow: `0 0 ${size * 2}px ${color}`,
+            left:  `${Math.random() * 100}%`,
+            top:   `${Math.random() * 100}%`,
+            animationDelay: `${Math.random() * 0.5}s`,
+        });
+        document.body.appendChild(el);
+        setTimeout(() => {
+            if (el && el.parentNode) el.parentNode.removeChild(el);
+        }, 3000);
+    } catch(e) {}
+}
+setInterval(spawnSparkle, 600);
+
+// ─── Lógica de Bienvenida y Creador de Avatar ─────────────────
+const welcomeOverlay = document.getElementById('welcome-overlay');
+const nameInput = document.getElementById('child-name-input');
+const welcomeTitle = document.getElementById('welcome-title');
+const avatarImg = document.querySelector('#hub-avatar-container img.base');
+
+// Variables de estado del Avatar
+let currentName = '';
+let currentGender = 'girl';
+let currentSkin = 'light';
+let currentClass = 'royal';
+
+// Contenedores de pasos
+const stepName = document.getElementById('step-name');
+const stepGender = document.getElementById('step-gender');
+const stepSkin = document.getElementById('step-skin');
+const stepClass = document.getElementById('step-class');
+
+// Elementos del Tutorial
+const tutOverlay = document.getElementById('tutorial-overlay');
+const speechBubble = document.getElementById('speech-bubble');
+const speechText = document.getElementById('speech-text');
+const tutNextBtn = document.getElementById('tutorial-next-btn');
+
+// Audio (TTS)
+function speakText(text) {
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'es-ES'; msg.rate = 0.95; msg.pitch = 1.3;
+        window.speechSynthesis.speak(msg);
+    }
+}
+
+// Lógica Multipaso
+document.getElementById('btn-next-name').addEventListener('click', () => {
+    const name = nameInput.value.trim();
+    if (name) {
+        currentName = name;
+        stepName.style.display = 'none';
+        stepGender.style.display = 'block';
+    }
+});
+
+function selectGender(gender) {
+    currentGender = gender;
+    stepGender.style.display = 'none';
+    stepSkin.style.display = 'block';
+}
+
+function selectSkin(skin) {
+    currentSkin = skin;
+    stepSkin.style.display = 'none';
+    stepClass.style.display = 'block';
+}
+
+function selectClass(cls) {
+    currentClass = cls;
+    
+    // Guardar en persistencia
+    localStorage.setItem('playzone_child_name', currentName);
+    localStorage.setItem('playzone_child_gender', currentGender);
+    localStorage.setItem('playzone_child_skin', currentSkin);
+    localStorage.setItem('playzone_child_class', currentClass);
+
+    // Auto-equipar traje inicial
+    if (typeof CoreSystem !== 'undefined') {
+        if (currentGender === 'boy') {
+            const boyMap = { 'hero': 'b_hero', 'explorer': 'b_explorer', 'royal': 'b_royal' };
+            const boyAccMap = { 'hero': 'b_sword', 'explorer': 'b_cap', 'royal': 'b_crown' };
+            
+            CoreSystem.equipItem('ropa_nino', boyMap[cls]);
+            if (boyAccMap[cls]) CoreSystem.equipItem('accesorios_nino', boyAccMap[cls]);
+        } else {
+            const girlMap = { 'hero': 'd_pink', 'explorer': 'd_blue', 'royal': 'd_purp' };
+            CoreSystem.equipItem('vestidos', girlMap[cls]);
+        }
+    }
+    
+    finishAvatarSetup(false);
+}
+
+function finishAvatarSetup(skipAudio = false) {
+    // 1. Actualizar Nombre
+    welcomeTitle.innerHTML = `¡Hola, ${currentName}! 👑`;
+    
+    // 2. Actualizar Interfaz (Niño vs Niña)
+    const wardrobeBtn = document.getElementById('wardrobe-target');
+    if (currentGender === 'boy') {
+        avatarImg.src = 'assets/boy_base.png';
+        wardrobeBtn.href = 'armario_nino.html';
+        wardrobeBtn.innerHTML = '<span class="icon">👕</span> Entrar al Armario';
+    } else {
+        avatarImg.src = 'assets/maria_antonia_stylized.png';
+        wardrobeBtn.href = 'boutique.html';
+        wardrobeBtn.innerHTML = '<span class="icon">👗</span> Entrar al Armario';
+    }
+    
+    // Ocultar Overlay
+    stepName.style.display = 'none';
+    stepGender.style.display = 'none';
+    stepSkin.style.display = 'none';
+    stepClass.style.display = 'none';
+    
+    welcomeOverlay.style.opacity = '0';
+    setTimeout(() => {
+        welcomeOverlay.style.display = 'none';
+        if (!skipAudio) {
+            speakText(`¡Hola ${currentName}! Prepárate para una aventura mágica.`);
+        }
+        if (!localStorage.getItem('playzone_tutorial_done')) {
+            setTimeout(startTutorial, 1500);
+        }
+    }, 500);
+}
+
+function resetAvatar() {
+    try {
+        localStorage.removeItem('playzone_child_name');
+        localStorage.removeItem('playzone_child_gender');
+        localStorage.removeItem('playzone_child_skin');
+        localStorage.removeItem('playzone_child_class');
+        localStorage.removeItem('ma_equipped'); // Limpiar ropa también
+    } catch(e) {}
+    window.location.reload();
+}
+
+// ─── Tutorial Interactivo ───
+let tutStep = 0;
+const tutorialSteps = [
+    {
+        targetId: 'avatar-target',
+        text: '¡Esta eres tú! Completa las misiones divertidas de abajo para ganar monedas mágicas y comprarle vestidos nuevos a la princesa.',
+        btnText: '¡Genial!'
+    },
+    {
+        targetId: 'wardrobe-target',
+        text: '¡Aquí está tu Armario Mágico! Toca este botón en cualquier momento para gastar tus monedas y probarle la ropa nueva a tu princesa.',
+        btnText: '¡Entendido!'
+    },
+    {
+        targetId: 'tabs-target',
+        text: '¡Toca estas insignias para descubrir diferentes aventuras! Cada juego es un reto diferente. ¿Lista para jugar?',
+        btnText: '¡A Jugar!'
+    }
+];
+
+function showTutorialStep() {
+    if (tutStep >= tutorialSteps.length) {
+        endTutorial();
+        return;
+    }
+    
+    // Limpiar anterior
+    document.querySelectorAll('.tutorial-active-element').forEach(el => el.classList.remove('tutorial-active-element'));
+    
+    const step = tutorialSteps[tutStep];
+    const target = document.getElementById(step.targetId);
+    
+    if (target) {
+        target.classList.add('tutorial-active-element');
+        speechText.innerHTML = step.text;
+        tutNextBtn.innerHTML = step.btnText;
+        
+        // Posicionar globo
+        const rect = target.getBoundingClientRect();
+        speechBubble.style.display = 'flex';
+        
+        // Si el elemento está muy arriba, el globo va abajo. Si no, arriba.
+        if (rect.top < window.innerHeight / 3) {
+            speechBubble.style.top = (rect.bottom + 20) + 'px';
+        } else {
+            speechBubble.style.top = (rect.top - 160) + 'px';
+        }
+        
+        speakText(step.text);
+    }
+}
+
+tutNextBtn.addEventListener('click', () => {
+    tutStep++;
+    showTutorialStep();
+});
+
+function startTutorial() {
+    // Ajustar textos según género para que sea inclusivo
+    if (currentGender === 'boy') {
+        tutorialSteps[0].text = '¡Este eres tú! Completa las misiones divertidas para ganar monedas mágicas y comprarle ropa nueva a tu personaje.';
+        tutorialSteps[1].text = '¡Aquí está tu Armario de Aventuras! Toca este botón para gastar tus monedas y probarte tus trajes nuevos.';
+        tutorialSteps[2].text = '¡Toca estas insignias para descubrir diferentes aventuras! Cada juego es un reto diferente. ¿Listo para jugar?';
+    } else {
+        tutorialSteps[0].text = '¡Esta eres tú! Completa las misiones divertidas para ganar monedas mágicas y comprarle vestidos nuevos a la princesa.';
+        tutorialSteps[1].text = '¡Aquí está tu Armario Mágico! Toca este botón para gastar tus monedas y probarle la ropa nueva a tu princesa.';
+        tutorialSteps[2].text = '¡Toca estas insignias para descubrir diferentes aventuras! Cada juego es un reto diferente. ¿Lista para jugar?';
+    }
+
+    tutStep = 0;
+    tutOverlay.style.display = 'block';
+    showTutorialStep();
+}
+
+function endTutorial() {
+    tutOverlay.style.display = 'none';
+    speechBubble.style.display = 'none';
+    document.querySelectorAll('.tutorial-active-element').forEach(el => el.classList.remove('tutorial-active-element'));
+    localStorage.setItem('playzone_tutorial_done', 'true');
+    speakText('¡Que te diviertas mucho!');
+}
+
+// ─── Candados Premium ───
+document.querySelectorAll('.locked-game').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        alert('🔒 ¡Juego Premium!\n\nSerás redirigido a TikTok. Diles a tus papás que nos sigan en @playquest.games para desbloquear más aventuras.');
+        window.open('https://www.tiktok.com/@playquest.games', '_blank');
+    });
+});
+
+window.addEventListener('load', () => {
+    let savedName = null;
+    try {
+        savedName = localStorage.getItem('playzone_child_name');
+    } catch(e) {
+        console.warn("No se pudo acceder a localStorage. Cargando modal por defecto.");
+    }
+
+    if (!savedName) {
+        welcomeOverlay.style.display = 'flex';
+        stepName.style.display = 'block';
+    } else {
+        currentName = savedName;
+        try {
+            currentGender = localStorage.getItem('playzone_child_gender') || 'girl';
+            currentSkin = localStorage.getItem('playzone_child_skin') || 'light';
+            currentClass = localStorage.getItem('playzone_child_class') || 'royal';
+        } catch(e) {}
+        
+        finishAvatarSetup(true); // skip audio
+    }
+
+    if (typeof CoreSystem !== 'undefined') {
+        CoreSystem.renderAvatar('hub-avatar-container');
+    }
+});
+</script>
+</body>
+</html>

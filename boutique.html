@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ Armario Mágico - Reino de Maria Antonia</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <script src="core_system.js"></script>
+    <style>
+        :root {
+            --gold: #ffd700;
+            --pink: #ff69b4;
+            --purple: #8a2be2;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Fredoka One', cursive;
+            background: radial-gradient(ellipse at top, #3d1b5c 0%, #1a0b2e 70%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 15px 20px;
+        }
+
+        /* ===== HEADER ===== */
+        .header {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-bottom: 18px;
+        }
+        .back-btn {
+            position: absolute; left: 0;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid var(--pink);
+            color: white;
+            padding: 10px 18px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1rem;
+            transition: 0.3s;
+            backdrop-filter: blur(5px);
+        }
+        .back-btn:hover { background: var(--pink); }
+        h1 {
+            font-size: 2.8rem;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(255,215,0,0.6), 0 3px 0 #a07800;
+        }
+        .star-display {
+            position: absolute; right: 0;
+            background: rgba(0,0,0,0.6);
+            border: 3px solid var(--gold);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px rgba(255,215,0,0.4);
+        }
+
+        /* ===== MAIN LAYOUT ===== */
+        .main-layout {
+            display: flex;
+            gap: 30px;
+            width: 100%;
+            max-width: 1200px;
+            align-items: flex-start;
+        }
+
+        /* ===== MIRROR (LEFT) ===== */
+        .mirror-section {
+            flex: 0 0 240px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .mirror-outer {
+            width: 230px;
+            height: 380px;
+            border-radius: 50% 50% 38% 38% / 28% 28% 14% 14%;
+            padding: 10px;
+            background: linear-gradient(145deg, #ffe066, #c8960c, #ffe066, #a07800);
+            box-shadow: 0 0 30px rgba(255,215,0,0.5), 0 8px 20px rgba(0,0,0,0.5);
+            position: relative;
+        }
+        .mirror-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50% 50% 36% 36% / 26% 26% 12% 12%;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(160deg, #c8e6ff, #e8d5f5);
+        }
+        .mirror-inner::after {
+            content: '';
+            position: absolute;
+            top: 8px; left: 10px;
+            width: 35px; height: 100px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.7), transparent);
+            border-radius: 20px;
+            transform: rotate(-15deg);
+            z-index: 20;
+            pointer-events: none;
+        }
+        #avatar-container {
+            width: 100%; height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        #avatar-container img.base {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            object-position: top center;
+            position: absolute;
+            top: 0; left: 0; z-index: 2;
+        }
+        .avatar-acc {
+            position: absolute;
+            pointer-events: none;
+            line-height: 1;
+        }
+        .mirror-label {
+            margin-top: 12px;
+            color: var(--gold);
+            font-size: 1rem;
+            text-shadow: 0 0 10px rgba(255,215,0,0.5);
+        }
+        .btn-reset {
+            margin-top: 10px;
+            background: rgba(255,105,180,0.15);
+            border: 2px solid var(--pink);
+            color: white;
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-reset:hover { background: var(--pink); transform: scale(1.05); }
+
+        /* ===== WARDROBE (RIGHT) ===== */
+        .wardrobe-section {
+            flex: 1;
+            position: relative;
+        }
+
+        /* The wardrobe furniture image as clickable map */
+        .wardrobe-map {
+            position: relative;
+            width: 100%;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+        .wardrobe-map img.wardrobe-bg {
+            width: 100%;
+            border-radius: 16px;
+            display: block;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+            filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));
+        }
+
+        /* Invisible clickable zones over the wardrobe image */
+        .zone {
+            position: absolute;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: 0.2s;
+            border: 3px solid transparent;
+        }
+        .zone:hover {
+            background: rgba(255,215,0,0.15);
+            border-color: rgba(255,215,0,0.5);
+        }
+        .zone-label {
+            position: absolute;
+            bottom: -28px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.7);
+            color: var(--gold);
+            padding: 4px 12px;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            transition: 0.2s;
+            pointer-events: none;
+        }
+        .zone:hover .zone-label { opacity: 1; }
+
+        /* ===== SLIDE-UP PANEL ===== */
+        .category-panel {
+            display: none;
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(to top, #2c1654, #3d1b5c);
+            border-top: 4px solid var(--gold);
+            border-radius: 30px 30px 0 0;
+            padding: 20px 30px 30px;
+            z-index: 1000;
+            box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+            animation: slideUp 0.35s ease;
+            max-height: 55vh;
+            overflow-y: auto;
+        }
+        .category-panel.open { display: block; }
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .panel-title {
+            font-size: 1.8rem;
+            color: var(--gold);
+        }
+        .panel-close {
+            background: var(--pink);
+            border: none;
+            color: white;
+            width: 38px; height: 38px;
+            border-radius: 50%;
+            font-size: 1.4rem;
+            cursor: pointer;
+            font-family: 'Fredoka One', cursive;
+            line-height: 38px;
+            text-align: center;
+            transition: 0.2s;
+        }
+        .panel-close:hover { transform: scale(1.15); background: #ff1493; }
+
+        /* Items inside the panel */
+        .panel-items {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        /* Dress card with hanger */
+        .dress-card {
+            background: rgba(255,255,255,0.07);
+            border: 3px solid rgba(255,255,255,0.15);
+            border-radius: 16px;
+            padding: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 140px;
+            position: relative;
+        }
+        .dress-card:hover { transform: translateY(-6px); border-color: var(--gold); background: rgba(255,215,0,0.1); }
+        .dress-card.equipped { border-color: var(--pink); background: rgba(255,105,180,0.15); }
+        .dress-card.locked { opacity: 0.6; }
+        .dress-card img {
+            width: 100%;
+            height: 120px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+        /* Hanger on top of dress images */
+        .hanger-svg {
+            display: block;
+            margin: 0 auto 4px;
+        }
+        .dress-name {
+            font-family: 'Nunito', sans-serif;
+            font-size: 0.8rem;
+            font-weight: 900;
+            color: white;
+            margin: 6px 0 4px;
+        }
+        .dress-action {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 12px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            transition: 0.2s;
+            width: 100%;
+        }
+        .dress-action.buy { background: var(--gold); color: black; }
+        .dress-action.equip { background: #00e676; color: black; }
+        .dress-action.on { background: var(--pink); color: white; }
+        .dress-action:hover { transform: scale(1.05); }
+
+        /* Small item card (accessories, shoes, pets) */
+        .item-card-sm {
+            background: rgba(255,255,255,0.07);
+            border: 3px solid rgba(255,255,255,0.15);
+            border-radius: 14px;
+            padding: 12px 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 110px;
+        }
+        .item-card-sm:hover { transform: translateY(-5px); border-color: var(--gold); }
+        .item-card-sm.equipped { border-color: var(--pink); background: rgba(255,105,180,0.15); }
+        .item-card-sm .sm-icon { font-size: 3rem; line-height: 1; }
+        .item-card-sm .sm-name { font-family: 'Nunito', sans-serif; font-size: 0.75rem; font-weight: 900; color: white; margin: 5px 0 4px; }
+
+        /* bg frame in panel */
+        .bg-card {
+            border-radius: 14px;
+            border: 4px solid rgba(255,255,255,0.2);
+            width: 140px;
+            height: 90px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            transition: 0.3s;
+            position: relative;
+        }
+        .bg-card:hover { transform: scale(1.06); border-color: var(--gold); }
+        .bg-card.equipped { border-color: var(--pink); box-shadow: 0 0 15px rgba(255,105,180,0.5); }
+        .bg-card-wrap { text-align: center; }
+        .bg-card-name { font-family: 'Nunito', sans-serif; font-size: 0.8rem; color: white; margin-top: 5px; font-weight: 900; }
+
+        /* Overlay backdrop */
+        .panel-backdrop {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+            backdrop-filter: blur(3px);
+        }
+        .panel-backdrop.open { display: block; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(60px);
+            background: rgba(0,0,0,0.9);
+            color: white;
+            padding: 12px 28px;
+            border-radius: 30px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 1rem;
+            font-weight: 900;
+            z-index: 9999;
+            border: 2px solid var(--gold);
+            transition: transform 0.4s;
+            white-space: nowrap;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+
+        @media (max-width: 720px) {
+            .main-layout { flex-direction: column; align-items: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- HEADER -->
+    <div class="header">
+        <a href="index.html" class="back-btn">⬅ Volver</a>
+        <h1>✨ Armario Mágico ✨</h1>
+        <div class="star-display"><span class="star-counter">0</span> ⭐</div>
+    </div>
+
+    <div class="main-layout">
+
+        <!-- ESPEJO MÁGICO -->
+        <div class="mirror-section">
+            <div class="mirror-outer">
+                <div class="mirror-inner">
+                    <div id="avatar-container">
+                        <img src="assets/maria_antonia_stylized.png" class="base" alt="Maria Antonia">
+                    </div>
+                </div>
+            </div>
+            <div class="mirror-label">✨ ¡Qué hermosa te ves! ✨</div>
+            <button class="btn-reset" onclick="unequipAll()">🔄 Quitar Todo</button>
+        </div>
+
+        <!-- ARMARIO INTERACTIVO -->
+        <div class="wardrobe-section">
+            <div class="wardrobe-map">
+                <img src="assets/wardrobe_furniture.png" class="wardrobe-bg" alt="Armario">
+
+                <!-- ZONE: Vestidos (left doors area ~top-center of wardrobe image) -->
+                <div class="zone" id="zone-vestidos"
+                     style="top:8%; left:12%; width:52%; height:62%"
+                     onclick="openPanel('vestidos')">
+                    <div class="zone-label">👗 Toca para ver Vestidos</div>
+                </div>
+
+                <!-- ZONE: Accesorios (right small compartment) -->
+                <div class="zone" id="zone-accesorios"
+                     style="top:8%; left:67%; width:30%; height:38%"
+                     onclick="openPanel('accesorios')">
+                    <div class="zone-label">👑 Accesorios</div>
+                </div>
+
+                <!-- ZONE: Mascotas (bottom drawer left) -->
+                <div class="zone" id="zone-zapatos"
+                     style="top:72%; left:5%; width:45%; height:22%"
+                     onclick="openPanel('mascotas')">
+                    <div class="zone-label">🦄 Mascotas</div>
+                </div>
+
+                <!-- ZONE: Zapatos (bottom drawer right) -->
+                <div class="zone" id="zone-mascotas"
+                     style="top:72%; left:52%; width:45%; height:22%"
+                     onclick="openPanel('zapatos')">
+                    <div class="zone-label">👠 Zapatos</div>
+                </div>
+
+                <!-- ZONE: Fondos (top right small area) -->
+                <div class="zone" id="zone-fondos"
+                     style="top:48%; left:67%; width:30%; height:22%"
+                     onclick="openPanel('fondos')">
+                    <div class="zone-label">🏰 Fondos</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BACKDROP -->
+    <div class="panel-backdrop" id="backdrop" onclick="closePanel()"></div>
+
+    <!-- SLIDE-UP PANEL -->
+    <div class="category-panel" id="category-panel">
+        <div class="panel-header">
+            <div class="panel-title" id="panel-title">👗 Vestidos</div>
+            <button class="panel-close" onclick="closePanel()">✕</button>
+        </div>
+        <div class="panel-items" id="panel-items"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const CATEGORY_LABELS = {
+            vestidos:   '👗 Vestidos',
+            accesorios: '👑 Accesorios',
+            zapatos:    '👠 Zapatos',
+            mascotas:   '🦄 Mascotas',
+            fondos:     '🏰 Fondos del Espejo',
+        };
+
+        const DRESS_IMAGES = {
+            d_pink: 'assets/dress_pink.png',
+            d_blue: 'assets/dress_ice.png',
+            d_purp: 'assets/dress_magic.png',
+        };
+
+        let currentPanel = null;
+
+        /* ========================
+           OPEN / CLOSE PANEL
+        ======================== */
+        function openPanel(category) {
+            currentPanel = category;
+            document.getElementById('panel-title').textContent = CATEGORY_LABELS[category];
+            document.getElementById('backdrop').classList.add('open');
+            document.getElementById('category-panel').classList.add('open');
+            renderPanel(category);
+            speak(`Aquí están los ${category}.`);
+        }
+
+        function closePanel() {
+            document.getElementById('backdrop').classList.remove('open');
+            document.getElementById('category-panel').classList.remove('open');
+            currentPanel = null;
+        }
+
+        /* ========================
+           RENDER PANEL ITEMS
+        ======================== */
+        function renderPanel(category) {
+            const items  = CoreSystem.ITEMS[category];
+            const inv    = CoreSystem.getInventory();
+            const eq     = CoreSystem.getEquipped();
+            const container = document.getElementById('panel-items');
+            container.innerHTML = '';
+
+            if (category === 'vestidos') {
+                items.forEach(item => renderDressCard(container, item, inv, eq, category));
+            } else if (category === 'fondos') {
+                items.forEach(item => renderBgCard(container, item, inv, eq, category));
+            } else {
+                items.forEach(item => renderSmallCard(container, item, inv, eq, category));
+            }
+        }
+
+        /* ---- Dress card with hanger ---- */
+        function renderDressCard(container, item, inv, eq, category) {
+            const hasItem    = inv.includes(item.id);
+            const isEquipped = eq[category] === item.id;
+            const imgSrc     = DRESS_IMAGES[item.id] || '';
+
+            const card = document.createElement('div');
+            card.className = `dress-card${isEquipped ? ' equipped' : ''}${!hasItem ? ' locked' : ''}`;
+            card.id = `card-${item.id}`;
+
+            let actionHTML = '';
+            if (!hasItem)        actionHTML = `<button class="dress-action buy" onclick="buyItem('${category}','${item.id}',${item.price})">💳 ${item.price} ⭐</button>`;
+            else if (isEquipped) actionHTML = `<button class="dress-action on" onclick="toggleEquip('${category}','${item.id}')">✨ Quitarlo</button>`;
+            else                 actionHTML = `<button class="dress-action equip" onclick="toggleEquip('${category}','${item.id}')">👗 Ponerlo</button>`;
+
+            card.innerHTML = `
+                <svg class="hanger-svg" width="50" height="24" viewBox="0 0 50 24">
+                    <line x1="25" y1="0" x2="25" y2="10" stroke="#aaa" stroke-width="3" stroke-linecap="round"/>
+                    <path d="M25 10 Q25 18 5 22 L45 22 Q25 18 25 10" fill="none" stroke="#bbb" stroke-width="3"/>
+                </svg>
+                ${imgSrc ? `<img src="${imgSrc}" alt="${item.name}">` : `<div style="font-size:5rem;line-height:1">${item.icon}</div>`}
+                <div class="dress-name">${item.name}</div>
+                ${!hasItem ? `<div style="color:#aaa;font-size:0.7rem;margin-bottom:4px;">🔒 Bloqueado</div>` : ''}
+                ${actionHTML}
+            `;
+            container.appendChild(card);
+        }
+
+        /* ---- Small shelf card ---- */
+        function renderSmallCard(container, item, inv, eq, category) {
+            const hasItem    = inv.includes(item.id);
+            const isEquipped = eq[category] === item.id;
+
+            const card = document.createElement('div');
+            card.className = `item-card-sm${isEquipped ? ' equipped' : ''}`;
+            card.id = `card-${item.id}`;
+
+            let actionHTML = '';
+            if (!hasItem)        actionHTML = `<button class="dress-action buy" style="font-size:0.75rem" onclick="buyItem('${category}','${item.id}',${item.price})">💳 ${item.price}⭐</button>`;
+            else if (isEquipped) actionHTML = `<button class="dress-action on" style="font-size:0.75rem" onclick="toggleEquip('${category}','${item.id}')">✨ Quitar</button>`;
+            else                 actionHTML = `<button class="dress-action equip" style="font-size:0.75rem" onclick="toggleEquip('${category}','${item.id}')">✅ Poner</button>`;
+
+            card.innerHTML = `
+                <div class="sm-icon">${item.icon}</div>
+                <div class="sm-name">${item.name}</div>
+                ${actionHTML}
+            `;
+            container.appendChild(card);
+        }
+
+        /* ---- Background card ---- */
+        function renderBgCard(container, item, inv, eq, category) {
+            const hasItem    = inv.includes(item.id);
+            const isEquipped = eq[category] === item.id;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'bg-card-wrap';
+            wrap.id = `card-${item.id}`;
+
+            let actionHTML = '';
+            if (!hasItem)        actionHTML = `<button class="dress-action buy" style="font-size:0.75rem;margin-top:5px" onclick="buyItem('${category}','${item.id}',${item.price})">💳 ${item.price}⭐</button>`;
+            else if (isEquipped) actionHTML = `<button class="dress-action on" style="font-size:0.75rem;margin-top:5px" onclick="toggleEquip('${category}','${item.id}')">✨ Quitar</button>`;
+            else                 actionHTML = `<button class="dress-action equip" style="font-size:0.75rem;margin-top:5px" onclick="toggleEquip('${category}','${item.id}')">🏰 Aplicar</button>`;
+
+            wrap.innerHTML = `
+                <div class="bg-card ${isEquipped ? 'equipped' : ''}" style="background:${item.color}">
+                    <span>${item.icon}</span>
+                </div>
+                <div class="bg-card-name">${item.name}</div>
+                ${actionHTML}
+            `;
+            container.appendChild(wrap);
+        }
+
+        /* ========================
+           BUY & EQUIP
+        ======================== */
+        function buyItem(category, itemId, price) {
+            const item = CoreSystem.ITEMS[category].find(i => i.id === itemId);
+            if (CoreSystem.spendStars(price)) {
+                CoreSystem.unlockItem(itemId);
+                CoreSystem.equipItem(category, itemId);
+                CoreSystem.renderAvatar('avatar-container');
+                document.querySelector('.star-counter').textContent = CoreSystem.getStars();
+                renderPanel(category);
+                showToast(`¡Compraste "${item.name}"! 🎉`);
+                speak(`¡Genial! Compraste ${item.name}.`);
+            } else {
+                const card = document.getElementById(`card-${itemId}`);
+                if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = 'shake 0.5s'; }
+                showToast('¡Necesitas más ⭐ estrellas! Sigue jugando.');
+                speak('Necesitas más estrellas, sigue jugando.');
+            }
+        }
+
+        function toggleEquip(category, itemId) {
+            CoreSystem.equipItem(category, itemId);
+            CoreSystem.renderAvatar('avatar-container');
+            renderPanel(category);
+        }
+
+        function unequipAll() {
+            const eq = CoreSystem.getEquipped();
+            Object.keys(eq).forEach(cat => eq[cat] = null);
+            localStorage.setItem('ma_equipped', JSON.stringify(eq));
+            CoreSystem.renderAvatar('avatar-container');
+            closePanel();
+            showToast('¡Princesa al natural! 🌸');
+        }
+
+        /* ========================
+           UTILITIES
+        ======================== */
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        function speak(text) {
+            try {
+                if ('speechSynthesis' in window) {
+                    window.speechSynthesis.cancel();
+                    const u = new SpeechSynthesisUtterance(text);
+                    u.lang = 'es-ES'; u.pitch = 1.2;
+                    window.speechSynthesis.speak(u);
+                }
+            } catch(e) {}
+        }
+
+        /* ========================
+           SHAKE KEYFRAME
+        ======================== */
+        const style = document.createElement('style');
+        style.textContent = `@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }`;
+        document.head.appendChild(style);
+
+        /* ========================
+           INIT
+        ======================== */
+        window.addEventListener('load', () => {
+            document.querySelector('.star-counter').textContent = CoreSystem.getStars();
+            CoreSystem.renderAvatar('avatar-container');
+            setTimeout(() => speak('¡Bienvenida a tu Armario Mágico! Toca las puertas para ver tus prendas.'), 700);
+        });
+    </script>
+</body>
+</html>
