@@ -261,12 +261,12 @@ const CoreSystem = {
             let dressCSS;
             if (gender === 'boy') {
                 // Boy outfits are cropped body pieces - position over torso
-                dressCSS = `position:absolute; top:20%; left:45%;
+                dressCSS = `position:absolute; top:24%; left:50%;
                     transform:translateX(-50%);
                     width:65%; height:55%;
                     object-fit:contain; object-position:top center;
                     z-index:5; pointer-events:none;
-                    opacity:0.85;`;
+                    opacity:1;`;
             } else {
                 // Girl dresses are full centered garments
                 dressCSS = `position:absolute; top:34%; left:50%;
