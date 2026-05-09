@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Colors - Pinta tu Mundo 🎈</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <script src="core_system.js"></script>
+    <style>
+        :root {
+            --primary: #ff69b4;
+            --secondary: #fbbf24;
+            --bg: #fdf2f8;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            background: var(--bg);
+            font-family: 'Quicksand', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .header { text-align: center; margin-bottom: 20px; }
+        h1 { font-family: 'Fredoka One', cursive; color: var(--primary); font-size: 3rem; margin: 0; }
+
+        .canvas-container {
+            position: relative;
+            background: white;
+            border: 10px solid var(--secondary);
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            cursor: crosshair;
+        }
+
+        canvas {
+            border-radius: 20px;
+            display: block;
+        }
+
+        .toolbar {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            background: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .color-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            border: 3px solid white;
+            cursor: pointer;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            transition: 0.2s;
+        }
+
+        .color-btn:hover { transform: scale(1.2); }
+        .color-btn.active { border-color: black; }
+
+        .btn-back {
+            margin-top: 20px;
+            padding: 12px 30px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-family: 'Fredoka One', cursive;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎈 Magic Colors</h1>
+        <p>¡Pinta con tus dedos y llena el mundo de color!</p>
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="paintCanvas" width="600" height="400"></canvas>
+    </div>
+
+    <div class="toolbar">
+        <div class="color-btn active" style="background: #ff69b4;" onclick="setColor('#ff69b4', this)"></div>
+        <div class="color-btn" style="background: #fbbf24;" onclick="setColor('#fbbf24', this)"></div>
+        <div class="color-btn" style="background: #4ade80;" onclick="setColor('#4ade80', this)"></div>
+        <div class="color-btn" style="background: #60a5fa;" onclick="setColor('#60a5fa', this)"></div>
+        <div class="color-btn" style="background: #a78bfa;" onclick="setColor('#a78bfa', this)"></div>
+        <div class="color-btn" style="background: #000000;" onclick="setColor('#000000', this)"></div>
+        <button onclick="clearCanvas()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">🗑️</button>
+    </div>
+
+    <a href="index.html" class="btn-back">⬅ Volver al Hub</a>
+
+    <script>
+        const canvas = document.getElementById('paintCanvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+        let color = '#ff69b4';
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = 10;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = color;
+
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        function setColor(c, btn) {
+            color = c;
+            document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', startPosition);
+        canvas.addEventListener('touchend', finishedPosition);
+        canvas.addEventListener('touchmove', draw);
+
+    </script>
+</body>
+</html>

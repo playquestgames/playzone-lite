@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Quest - Castillo de los Cálculos 🏰</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <script src="core_system.js"></script>
+    <style>
+        :root {
+            --primary: #9333ea;
+            --secondary: #fbbf24;
+            --accent: #ff69b4;
+            --bg-castle: #1a0b2e;
+            --text-light: #f3f4f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Quicksand', sans-serif;
+        }
+
+        body {
+            background: var(--bg-castle);
+            background-image: radial-gradient(circle at 50% 50%, #2e1065 0%, #1a0b2e 100%);
+            min-height: 100vh;
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        /* HUD */
+        .hud {
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(10px);
+            border-bottom: 2px solid var(--secondary);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.1);
+            border: 2px solid var(--secondary);
+            color: var(--secondary);
+            padding: 10px 20px;
+            border-radius: 15px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .coin-counter {
+            background: rgba(251, 191, 36, 0.2);
+            padding: 10px 25px;
+            border-radius: 30px;
+            border: 2px solid var(--secondary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.5rem;
+            font-family: 'Fredoka One', cursive;
+            color: var(--secondary);
+            box-shadow: 0 0 15px rgba(251,191,36,0.3);
+        }
+
+        /* Game Container */
+        .game-container {
+            flex: 1;
+            width: 90%;
+            max-width: 800px;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .castle-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 3rem;
+            color: var(--secondary);
+            text-shadow: 0 5px 0 #b45309, 0 10px 20px rgba(0,0,0,0.5);
+            margin-bottom: 30px;
+        }
+
+        /* Operation Selector */
+        .selector-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            width: 100%;
+            margin-top: 40px;
+        }
+
+        .op-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            padding: 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .op-card:hover {
+            transform: translateY(-10px);
+            background: rgba(147, 51, 234, 0.2);
+            border-color: var(--accent);
+            box-shadow: 0 10px 30px rgba(147,51,234,0.4);
+        }
+
+        .op-icon { font-size: 3.5rem; }
+        .op-name { font-weight: bold; font-size: 1.2rem; }
+
+        /* Question Screen */
+        #screen-question {
+            display: none;
+            width: 100%;
+            background: rgba(255,255,255,0.05);
+            padding: 50px;
+            border-radius: 40px;
+            border: 3px solid var(--primary);
+            margin-top: 20px;
+            position: relative;
+        }
+
+        .math-problem {
+            font-family: 'Fredoka One', cursive;
+            font-size: 5rem;
+            margin-bottom: 40px;
+            color: white;
+            letter-spacing: 5px;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+
+        .option-btn {
+            background: white;
+            border: none;
+            padding: 25px;
+            border-radius: 20px;
+            font-size: 2.5rem;
+            font-family: 'Fredoka One', cursive;
+            color: var(--primary);
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 8px 0 #ddd;
+        }
+
+        .option-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 4px 0 #ddd;
+        }
+
+        .option-btn.correct { background: #4ade80 !important; color: white !important; box-shadow: 0 8px 0 #166534 !important; }
+        .option-btn.wrong { background: #f87171 !important; color: white !important; box-shadow: 0 8px 0 #991b1b !important; }
+
+        /* Feedback Overlay */
+        .feedback-overlay {
+            position: fixed;
+            inset: 0;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .feedback-content {
+            font-size: 10rem;
+            animation: bounce 0.5s infinite alternate;
+        }
+
+        @keyframes bounce {
+            from { transform: scale(1); }
+            to { transform: scale(1.2); }
+        }
+
+        @keyframes floatUpFade {
+            0% { transform: translate(-50%, 0); opacity: 0; }
+            20% { opacity: 1; }
+            100% { transform: translate(-50%, -100px); opacity: 0; }
+        }
+
+        @keyframes coin-pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); color: #fff; }
+            100% { transform: scale(1); }
+        }
+        .pop { animation: coin-pop 0.3s ease-out; }
+
+    </style>
+</head>
+<body>
+
+    <div class="hud">
+        <a href="index.html" class="back-btn">🏰 Volver al Castillo</a>
+        <div class="coin-counter" id="star-display">
+            ⭐ <span class="star-counter">0</span>
+        </div>
+    </div>
+
+    <div class="game-container">
+        <h1 class="castle-title" id="main-title">Math Quest</h1>
+
+        <!-- SELECCIÓN DE OPERACIÓN -->
+        <div id="screen-selector" style="width: 100%;">
+            <p style="font-size: 1.4rem; color: #cbd5e1;">¡Elige tu misión matemática!</p>
+            <div class="selector-grid">
+                <div class="op-card" onclick="startGame('sum')">
+                    <span class="op-icon">➕</span>
+                    <span class="op-name">Sumas</span>
+                </div>
+                <div class="op-card" onclick="startGame('sub')">
+                    <span class="op-icon">➖</span>
+                    <span class="op-name">Restas</span>
+                </div>
+                <div class="op-card" onclick="startGame('mul')">
+                    <span class="op-icon">✖️</span>
+                    <span class="op-name">Multiplicación</span>
+                </div>
+                <div class="op-card" onclick="startGame('div')">
+                    <span class="op-icon">➗</span>
+                    <span class="op-name">División</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- PANTALLA DE PREGUNTA -->
+        <div id="screen-question">
+            <div class="math-problem" id="problem-text">5 + 3 = ?</div>
+            <div class="options-grid" id="options-container">
+                <!-- Botones se generan por JS -->
+            </div>
+        </div>
+    </div>
+
+    <div class="feedback-overlay" id="feedback">
+        <div class="feedback-content" id="feedback-emoji">✨</div>
+        <h2 id="feedback-text" style="font-size: 2rem; margin-top: 20px;">¡Genial!</h2>
+    </div>
+
+    <script>
+        let currentMode = '';
+        let correctAnswer = 0;
+
+        function updateHUD() {
+            const displays = document.querySelectorAll('.star-counter');
+            displays.forEach(el => el.textContent = CoreSystem.getStars());
+        }
+
+        function startGame(mode) {
+            currentMode = mode;
+            document.getElementById('screen-selector').style.display = 'none';
+            document.getElementById('screen-question').style.display = 'block';
+            
+            const titles = {
+                'sum': 'Suma Mágica',
+                'sub': 'Resta Legendaria',
+                'mul': 'Multi-Aventura',
+                'div': 'División Real'
+            };
+            document.getElementById('main-title').innerText = titles[mode];
+            nextQuestion();
+        }
+
+        function generateProblem() {
+            let num1, num2, op;
+            
+            switch(currentMode) {
+                case 'sum':
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                    correctAnswer = num1 + num2;
+                    op = '+';
+                    break;
+                case 'sub':
+                    num1 = Math.floor(Math.random() * 20) + 10;
+                    num2 = Math.floor(Math.random() * num1); 
+                    correctAnswer = num1 - num2;
+                    op = '-';
+                    break;
+                case 'mul':
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    correctAnswer = num1 * num2;
+                    op = '×';
+                    break;
+                case 'div':
+                    num2 = Math.floor(Math.random() * 9) + 1;
+                    correctAnswer = Math.floor(Math.random() * 10) + 1;
+                    num1 = num2 * correctAnswer; 
+                    op = '÷';
+                    break;
+            }
+
+            document.getElementById('problem-text').innerText = `${num1} ${op} ${num2} = ?`;
+            
+            let options = [correctAnswer];
+            while(options.length < 4) {
+                let wrong = correctAnswer + (Math.floor(Math.random() * 10) - 5);
+                if(wrong < 0) wrong = Math.abs(wrong) + 1;
+                if(!options.includes(wrong)) options.push(wrong);
+            }
+            return options.sort(() => Math.random() - 0.5);
+        }
+
+        function nextQuestion() {
+            const options = generateProblem();
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn';
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(val, btn) {
+            const allBtns = document.querySelectorAll('.option-btn');
+            allBtns.forEach(b => b.style.pointerEvents = 'none');
+
+            if(val === correctAnswer) {
+                btn.classList.add('correct');
+                showFeedback('🌟', '¡Respuesta Correcta!', true);
+                CoreSystem.addStars(10); // 10 estrellas por acierto
+            } else {
+                btn.classList.add('wrong');
+                allBtns.forEach(b => {
+                    if(parseInt(b.innerText) === correctAnswer) b.classList.add('correct');
+                });
+                showFeedback('❌', '¡Casi! Sigue intentando', false);
+            }
+
+            setTimeout(() => {
+                document.getElementById('feedback').style.display = 'none';
+                updateHUD();
+                nextQuestion();
+            }, 1500);
+        }
+
+        function showFeedback(emoji, text, isCorrect) {
+            const overlay = document.getElementById('feedback');
+            document.getElementById('feedback-emoji').innerText = emoji;
+            document.getElementById('feedback-text').innerText = text;
+            overlay.style.display = 'flex';
+        }
+
+        window.onload = updateHUD;
+    </script>
+</body>
+</html>
